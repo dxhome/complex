@@ -23,7 +23,16 @@ for (var i = 0; i < config.length; i++) {
     actors.push(complex.createLandlord(config[i]));
   }
   if (config[i] instanceof complex.createConfig.RenterConfig) {
-    actors.push(complex.createRenter(config[i]));
+    let renter = complex.createRenter(config[i]);
+    if (!seedContact)
+    {
+      // create a seed for others to connect to
+      var seedContact = renter.getContact();
+    }
+
+    // add seed prior to joining
+    renter.addSeedList(seedContact);
+    actors.push(renter);
   }
 }
 
