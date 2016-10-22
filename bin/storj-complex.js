@@ -28,6 +28,8 @@ for (var i = 0; i < config.length; i++) {
     {
       // create a seed for others to connect to
       var seedContact = renter.getContact();
+
+      // regular report contact
     }
 
     // add seed prior to joining
@@ -36,11 +38,35 @@ for (var i = 0; i < config.length; i++) {
   }
 }
 
-for (var j = 0; j < actors.length; j++) {
+for (let j = 0; j < actors.length; j++) {
   actors[j].pipe(process.stdout);
+
+  actors[j].on('connected', function () {
+    setInterval(listContacts.bind(actors[j]), 10000);
+  });
+
   actors[j].start(function(err) {
     if (err) {
       throw err;
     }
   });
+}
+
+function listContacts() {
+  var self = this;
+
+  self._logger.warn('List current contacts...');
+
+  self._logger.warn('found self contact %j', self._self);
+
+  for (var k in self._router._buckets) {
+    let contactlist = self._router._buckets[k].getContactList();
+    if (! contactlist) {
+      self._logger.warn('no contacts found');
+    } else {
+      contactlist.forEach(function (c) {
+        self._logger.warn('found other contact %j', c);
+      });
+    }
+  }
 }
