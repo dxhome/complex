@@ -33,7 +33,7 @@ for (var i = 0; i < config.length; i++) {
     }
 
     // add seed prior to joining
-    renter.addSeedList(seedContact);
+    //renter.addSeedList(seedContact);
     actors.push(renter);
   }
 }
@@ -41,9 +41,11 @@ for (var i = 0; i < config.length; i++) {
 for (let j = 0; j < actors.length; j++) {
   actors[j].pipe(process.stdout);
 
-  actors[j].on('connected', function () {
-    setInterval(listContacts.bind(actors[j]), 10000);
-  });
+  if (actors[j] instanceof complex.createRenter) {
+    actors[j].on('ready', function () {
+      setInterval(listContacts.bind(actors[j].network), 10000);
+    });
+  }
 
   actors[j].start(function(err) {
     if (err) {
@@ -55,18 +57,24 @@ for (let j = 0; j < actors.length; j++) {
 function listContacts() {
   var self = this;
 
-  self._logger.warn('List current contacts...');
+  if (typeof this === 'undefined') {
+    console.log('network is not ready yet, skip it...');
+    return
+  }
 
-  self._logger.warn('found self contact %j', self._self);
+  console.log('List current contacts...');
 
-  for (var k in self._router._buckets) {
-    let contactlist = self._router._buckets[k].getContactList();
+  console.log('found self contact %s/%s', self.contact.toString(), self.contact.nodeID);
+
+  for (var k in self.router._buckets) {
+    let contactlist = self.router._buckets[k].getContactList();
     if (! contactlist) {
-      self._logger.warn('no contacts found');
+      console.log('no contacts found');
     } else {
       contactlist.forEach(function (c) {
-        self._logger.warn('found other contact %j', c);
+        console.log('found other contact %s/%s', c.toString(), c.nodeID);
       });
     }
   }
 }
+
